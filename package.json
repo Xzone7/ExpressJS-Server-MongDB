@@ -1,0 +1,23 @@
+{
+  "name": "expressjs-server-mongdb",
+  "version": "1.0.0",
+  "description": "backend server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xzone7/ExpressJS-Server-MongDB.git"
+  },
+  "author": "Xu Chen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Xzone7/ExpressJS-Server-MongDB/issues"
+  },
+  "homepage": "https://github.com/Xzone7/ExpressJS-Server-MongDB#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.6.11"
+  }
+}
