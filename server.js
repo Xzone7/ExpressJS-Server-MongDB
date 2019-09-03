@@ -12,18 +12,25 @@ const { MongoDBConnection } = require("./database/MongoDBConnection");
 /* ----------------------------------- */
 
 // for parsing application/json request body
-app.use(express.json()); 
+app.use(express.json());
 
 // for parsing allication/x-www-form-urlencoded request body
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 
 // CORS controll grant
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Resource-With, Content-Type, Accept");
     res.header("Access-Control-Allow-Method", "*");
-    next();
-}); 
+    if (req.method === "OPTIONS") {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
 
 // Access Logger
 app.use((req, res, next) => {
@@ -35,6 +42,8 @@ app.use((req, res, next) => {
 // Router Setting
 app.use("/api", router);
 
+/* Testing acc */
+let testCount = 0;
 
 /* ----------------------------------- */
 /* Router configuration */
@@ -42,8 +51,14 @@ app.use("/api", router);
 
 /* GET Method Router */
 router.get("/users", (req, res) => {
-    const conn = new MongoDBConnection();
-    conn.getAllUser(res);
+    console.log(`COUNT: ${testCount} \n`);
+    if (testCount < 3) {
+        testCount++;
+        res.sendStatus(429);
+    } else {
+        const conn = new MongoDBConnection();
+        conn.getAllUser(res);
+    }
 });
 
 router.get("/users/:userId", (req, res) => {
