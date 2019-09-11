@@ -28,6 +28,7 @@ app.use((req, res, next) => {
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
         res.sendStatus(200);
     } else {
+        console.log("------------------------------------\n");
         next();
     }
 });
@@ -46,7 +47,13 @@ app.use("/api", router);
 let testCount = 0;
 
 /* ----------------------------------- */
-/* Router configuration */
+/* Database configuration */
+/* ----------------------------------- */
+
+const conn = new MongoDBConnection();
+
+/* ----------------------------------- */
+/* Project-1 Router configuration */
 /* ----------------------------------- */
 
 /* GET Method Router */
@@ -56,34 +63,55 @@ router.get("/users", (req, res) => {
         testCount++;
         res.sendStatus(429);
     } else {
-        const conn = new MongoDBConnection();
         conn.getAllUser(res);
     }
 });
 
 router.get("/users/:userId", (req, res) => {
     console.log(req.param.userId);
-    const conn = new MongoDBConnection();
     conn.getUserById(res, req.params.userId);
 });
 
 /* POST Method Router */
 router.post("/users", (req, res) => {
-    const conn = new MongoDBConnection();
     conn.insertUser(res, req.body);
 });
 
 /* PUT Method Router */
 router.put("/users/:userId", (req, res) => {
-    const conn = new MongoDBConnection();
     conn.updateUser(res, req.params.userId, req.body);
 });
 
 /* DELETE Method Router */
 router.delete("/users/:userId", (req, res) => {
-    const conn = new MongoDBConnection();
     conn.deleteUser(res, req.params.userId);
 });
+
+
+/* ----------------------------------- */
+/* Project-2 Router configuration */
+/* ----------------------------------- */
+
+/* GET Method Router */
+router.get("/armyusers", (req, res) => {
+    conn.getAllArmyUser(res);
+});
+
+/* POST Method Router */
+router.post("/armyusers", (req, res) => {
+    conn.insertArmyUser(res, req.body);
+});
+
+/* PUT Method Router */
+router.put("/armyusers/:userId", (req, res) => {
+    conn.updateArmyUser(res, req.params.userId, req.body);
+});
+
+/* DELETE Method Router */
+router.delete("/armyusers", (req, res) => {
+    conn.deleteArmyUser(res, req.body);
+});
+
 
 /* Missing Resources 404 Page Router */
 app.all("*", (req, res) => {
