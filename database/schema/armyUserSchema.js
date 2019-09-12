@@ -6,6 +6,7 @@ const ArmyUserSchema = new Schema({
     avatar_img: Buffer,
     name: String,
     sex: String,
+    rank: String,
     start_date: String,
     phone: String,
     email: String,
