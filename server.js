@@ -97,6 +97,11 @@ router.get("/armyusers", (req, res) => {
     conn.getAllArmyUser(res);
 });
 
+/* GET Method Rounter: get all users for /create page  */
+router.get("/armyuser-all-superior", (req, res) => {
+    conn.getAllArmyUser(res);
+});
+
 /* POST Method Router */
 router.post("/armyusers", (req, res) => {
     conn.insertArmyUser(res, req.body);
