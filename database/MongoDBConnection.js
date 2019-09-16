@@ -17,8 +17,8 @@ class MongoDBConnection {
                 console.error("DB connection err", err);
                 return;
             }
+            console.log("DB connection has succeed... \n");
         });
-        console.log("DB connection has succeed... \n");
     }
 
     /**************Users Collection**************/
