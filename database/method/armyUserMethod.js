@@ -123,25 +123,131 @@ module.exports.insertArmyUser = (res, data) => {
     });
 }
 
-/* PUT/UPDATE A USER BY USERID */
+/* PUT/UPDATE A USER BY USERID 
+   Work-flow:
+             case 1: user update data's superior stay the same
+                ----> just update other fileds of user based on request data
+
+             case 2: user update data's superior has changed 
+                case 2.1 user's original parent node is null
+                    ----> 2.1.1 insert user to other's num_of_DS
+                    ----> 2.1.2 update user's superior
+                
+                case 2.2 user's original parent node is NOT null
+                    ----> 2.2.1 delete user from original superior's num_of_DS
+                    ----> 2.2.2 insert user to other's num_of_DS
+                    ----> 2.2.3 update user's superior
+                    
+*/
 module.exports.updateArmyUser = (res, id, data) => {
 
     console.log(`Start to update user: ${id} transaction... \n`);
 
-    ArmyUsers.findByIdAndUpdate(id, data, (err) => {
+    console.log("Start to retrieve user's original data... \n");
+
+    ArmyUsers.findById(id, (err, originalData) => {
         if (err) {
-            console.error(err);
-            res.status(500).json({
-                DBconnection: `${err}`
-            });
+            closeFailHandle(err, res);
             return;
         }
-        res.status(200).json({
-            Message: `Update User: ${id} Successfully`
-        });
-        console.log("DB *UPDATE USER* transaction has succeed... \n");
-        console.log("Send message to client successfully \n");
-    });
+        console.log("Orginal Data has retrieve back...Start to decide the updae work-flow...\n");
+
+        const originName = originalData.superior.name ? originalData.superior.name.toString() : null;
+        const originId = originalData.superior._id ? originalData.superior._id.toString() : null;
+
+        // case 1
+        if ((originName === data.superior.name && originId === data.superior._id)) {
+
+            console.log("Case 1 Enter: user update data's superior STAY THE SAME...\n");
+
+            ArmyUsers.findByIdAndUpdate(id, data, { useFindAndModify: false }, (err) => {
+                if (err) {
+                    closeFailHandle(err, res);
+                    return;
+                }
+                res.status(200).json({
+                    Message: `Update User: ${id} Successfully`
+                });
+                console.log("DB *UPDATE USER* transaction has succeed... \n");
+                console.log("Send message to client successfully \n");
+            });
+
+            // case 2
+        } else {
+            console.log("Case 2 Enter: user update data's superior HAVE CHANGED...\n");
+
+            if (originalData.superior.name === null && originalData.superior._id === null) {
+                // case 2.1
+
+                console.log("Case 2.1 Enter: user update data's superior HAVE CHANGED, and, orginal user has NO parent...\n");
+
+                ArmyUsers.findByIdAndUpdate(data.superior._id, { $push: { num_of_ds: { _id: data._id } } }, { useFindAndModify: false }, (err) => {
+                    if (err) {
+                        closeFailHandle(err, res);
+                        return;
+                    }
+
+                    ArmyUsers.findByIdAndUpdate(id, data, { useFindAndModify: false }, (err) => {
+                        if (err) {
+                            closeFailHandle(err, res);
+                            return;
+                        }
+                        res.status(200).json({
+                            Message: `Update User: ${id} Successfully`
+                        });
+                        console.log("DB *UPDATE USER* transaction has succeed... \n");
+                        console.log("Send message to client successfully \n");
+                    });
+                });
+
+                // case 2.2
+            } else {
+
+                console.log("Case 2.2 Enter: user update data's superior HAVE CHANGED, and, orginal user has a parent...\n");
+
+                ArmyUsers.updateOne({ _id: originalData.superior._id }, { $pull: { num_of_ds: { _id: data._id } } }, (err) => {
+                    if (err) {
+                        closeFailHandle(err, res);
+                        return;
+                    }
+
+                    ArmyUsers.findByIdAndUpdate(data.superior._id, { $push: { num_of_ds: { _id: data._id } } }, { useFindAndModify: false }, (err) => {
+                        if (err) {
+                            closeFailHandle(err, res);
+                            return;
+                        }
+
+                        ArmyUsers.findByIdAndUpdate(id, data, { useFindAndModify: false }, (err) => {
+                            if (err) {
+                                closeFailHandle(err, res);
+                                return;
+                            }
+                            res.status(200).json({
+                                Message: `Update User: ${id} Successfully`
+                            });
+                            console.log("DB *UPDATE USER* transaction has succeed... \n");
+                            console.log("Send message to client successfully \n");
+                        });
+                    });
+                });
+            }
+        }
+    })
+
+    // ArmyUsers.findByIdAndUpdate(id, data, (err) => {
+    //     if (err) {
+    //         console.error(err);
+    //         res.status(500).json({
+    //             DBconnection: `${err}`
+    //         });
+    //         return;
+    //     }
+    //     res.status(200).json({
+    //         Message: `Update User: ${id} Successfully`
+    //     });
+    //     console.log("DB *UPDATE USER* transaction has succeed... \n");
+    //     console.log("Send message to client successfully \n");
+    // });
 }
 
 /* DELETE USER BY USERID 
