@@ -93,7 +93,6 @@ router.delete("/users/:userId", (req, res) => {
 
 /* GET Method Router */
 router.get("/armyusers", (req, res) => {
-    console.log(req.url);
     conn.getArrayOfAllArmyUser(req, res);
 });
 
