@@ -22,7 +22,7 @@ class MongoDBConnection {
     }
 
     /**************Users Collection**************/
-    
+
     // GET all users
     getAllUser(res) {
         user.getAllUser(res);
@@ -51,6 +51,11 @@ class MongoDBConnection {
 
     /**************Users Collection**************/
 
+    // GET all users, return array of users
+    getArrayOfAllArmyUser(req, res) {
+        armyuser.getArrayOfAllArmyUser(req, res);
+    }
+
     // GET all users
     getAllArmyUser(res) {
         armyuser.getAllArmyUser(res);
@@ -59,6 +64,11 @@ class MongoDBConnection {
     // GET one user by userID
     getArmyUserById(res, id) {
         armyuser.getArmyUserByID(res, id);
+    }
+
+    // GET valid superior list
+    getValidSuperiorById(res, id) {
+        armyuser.getValidSuperiorById(res, id);
     }
 
     // POST a new user
@@ -74,7 +84,7 @@ class MongoDBConnection {
     // DELETE one user by userID
     deleteArmyUser(res, data) {
         armyuser.deleteArmyUser(res, data);
-    }    
+    }
 }
 
 module.exports = { MongoDBConnection };

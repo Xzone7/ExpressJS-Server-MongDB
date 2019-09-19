@@ -68,7 +68,6 @@ router.get("/users", (req, res) => {
 });
 
 router.get("/users/:userId", (req, res) => {
-    console.log(req.param.userId);
     conn.getUserById(res, req.params.userId);
 });
 
@@ -94,12 +93,18 @@ router.delete("/users/:userId", (req, res) => {
 
 /* GET Method Router */
 router.get("/armyusers", (req, res) => {
+    console.log(req.url);
+    conn.getArrayOfAllArmyUser(req, res);
+});
+
+/* GET Method Router: get all users for /create page  */
+router.get("/armyuser-all-superior", (req, res) => {
     conn.getAllArmyUser(res);
 });
 
-/* GET Method Rounter: get all users for /create page  */
-router.get("/armyuser-all-superior", (req, res) => {
-    conn.getAllArmyUser(res);
+/* GET Method Router: get all no circle superior for /edit page base on ID */
+router.get("/allow-edit-superior/:userId", (req, res) => {
+    conn.getValidSuperiorById(res, req.params.userId);
 });
 
 /* POST Method Router */

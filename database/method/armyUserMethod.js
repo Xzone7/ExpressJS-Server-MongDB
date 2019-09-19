@@ -2,11 +2,29 @@
 
 const mongoose = require("mongoose");
 const ArmyUsers = require("../schema/armyUserSchema");
+const paginationAlgo = require("./pagination_sort_search");
+
+/* GET ALL USERS AND RETURN AS AN ARRAY */
+module.exports.getArrayOfAllArmyUser = (req, res) => {
+
+    console.log("Start to fetch all users' data transaction... \n");
+
+    ArmyUsers.find({}, (err, data) => {
+        if (err) {
+            console.error(err);
+            return "DBerror";
+        }
+        console.log("DB *FIND ALL* transaction has succeed... \n");
+        console.log("return data to caller successfully... \n");
+        paginationAlgo.pagination_sort_search(req, res, data);
+    });
+
+}
 
 /* GET ALL USERS */
 module.exports.getAllArmyUser = (res) => {
 
-    console.log("Start to fetch all users' data transication... \n");
+    console.log("Start to fetch all users' data transaction... \n");
 
     // Find all users from Users collection
     ArmyUsers.find({}, (err, data) => {
@@ -22,6 +40,34 @@ module.exports.getAllArmyUser = (res) => {
         console.log("Send data to client successfully... \n");
     });
 };
+
+/* GET NO CIRCLE SUPERIOR LIST FOR EDIT BASED ON REQUEST USER-ID 
+   Work-flow:
+             1. fetch all USERs back to server memeory
+             2. find the target node by given id
+             3. user BFS/DFS to find all target node's (as root) children 
+             4. put those children to a list 
+             5. filter out those data from all USERs data
+             6. send valid list back to client
+*/
+module.exports.getValidSuperiorById = (res, id) => {
+
+    console.log("Start to fetch all users' data transaction...\n");
+
+    // Fina all users from Users collection
+    ArmyUsers.find({}, (err, data) => {
+        if (err) {
+            closeFailHandle(err, res);
+            return
+        }
+        console.log("Successfully get all users' data, start to follow the work-flow...\n");
+
+        const validData = getAllValidSuperiorList(id, data);
+        res.status(200).json(validData);
+        console.log("DB *FIND ALL* transaction has succeed, DFS *FIND VALID SUPERIOR* transaction has succeed... \n");
+        console.log("Send data to client successfully... \n");
+    });
+}
 
 /* GET USER BY ID (NOTICE: CURRENTLY DEPRECATED) */
 module.exports.getArmyUserByID = (res, id) => {
@@ -154,7 +200,7 @@ module.exports.updateArmyUser = (res, id, data) => {
 
         const originName = originalData.superior.name ? originalData.superior.name.toString() : null;
         const originId = originalData.superior._id ? originalData.superior._id.toString() : null;
-
+   
         // case 1
         if ((originName === data.superior.name && originId === data.superior._id)) {
 
@@ -181,7 +227,7 @@ module.exports.updateArmyUser = (res, id, data) => {
 
                 console.log("Case 2.1 Enter: user update data's superior HAVE CHANGED, and, orginal user has NO parent...\n");
 
-                ArmyUsers.findByIdAndUpdate(data.superior._id, { $push: { num_of_ds: { _id: data._id } } }, { useFindAndModify: false }, (err) => {
+                ArmyUsers.findByIdAndUpdate(data.superior._id, { $push: { num_of_ds: { _id: id } } }, { useFindAndModify: false }, (err) => {
                     if (err) {
                         closeFailHandle(err, res);
                         return;
@@ -205,13 +251,13 @@ module.exports.updateArmyUser = (res, id, data) => {
 
                 console.log("Case 2.2 Enter: user update data's superior HAVE CHANGED, and, orginal user has a parent...\n");
 
-                ArmyUsers.updateOne({ _id: originalData.superior._id }, { $pull: { num_of_ds: { _id: data._id } } }, (err) => {
+                ArmyUsers.updateOne({ _id: originalData.superior._id }, { $pull: { num_of_ds: { _id: id } } }, (err) => {
                     if (err) {
                         closeFailHandle(err, res);
                         return;
                     }
 
-                    ArmyUsers.findByIdAndUpdate(data.superior._id, { $push: { num_of_ds: { _id: data._id } } }, { useFindAndModify: false }, (err) => {
+                    ArmyUsers.findByIdAndUpdate(data.superior._id, { $push: { num_of_ds: { _id: id } } }, { useFindAndModify: false }, (err) => {
                         if (err) {
                             closeFailHandle(err, res);
                             return;
@@ -233,21 +279,6 @@ module.exports.updateArmyUser = (res, id, data) => {
             }
         }
     })
-
-    // ArmyUsers.findByIdAndUpdate(id, data, (err) => {
-    //     if (err) {
-    //         console.error(err);
-    //         res.status(500).json({
-    //             DBconnection: `${err}`
-    //         });
-    //         return;
-    //     }
-    //     res.status(200).json({
-    //         Message: `Update User: ${id} Successfully`
-    //     });
-    //     console.log("DB *UPDATE USER* transaction has succeed... \n");
-    //     console.log("Send message to client successfully \n");
-    // });
 }
 
 /* DELETE USER BY USERID 
@@ -383,54 +414,35 @@ const closeSuccessHandle = (res, id) => {
     console.log("Send message to client successfully... \n");
 }
 
-function base64ArrayBuffer(arrayBuffer) {
-    var base64 = ''
-    var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+const getAllValidSuperiorList = (id, data) => {
+    // for efficience purpose, transfer data list to map first
+    // Map: (Key: _ID, Value: list of DC_ID)
+    const map = new Map();
+    data.forEach((ele) => {
+        console.log(typeof ele.num_of_ds, ele.num_of_ds);
+        map.set(ele._id.toString(), ele.num_of_ds.map((e, index) => e._id.toString()));
+    })
+    const set = new Set();
 
-    var bytes = new Uint8Array(arrayBuffer)
-    var byteLength = bytes.byteLength
-    var byteRemainder = byteLength % 3
-    var mainLength = byteLength - byteRemainder
+    // fill out set with all children of current entry id node, including itself 
+    dfsHelper(id, map, set);
+    
+    // filter out any one in the set from data based on id
+    return data.filter((ele, index) => !set.has(ele._id.toString()));
+}
 
-    var a, b, c, d
-    var chunk
+const dfsHelper = (id, map, set) => {
+    // add to set 
+    set.add(id)
+    let currentChildrenArray = map.get(id);
 
-    // Main loop deals with bytes in chunks of 3
-    for (var i = 0; i < mainLength; i = i + 3) {
-        // Combine the three bytes into a single integer
-        chunk = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2]
-
-        // Use bitmasks to extract 6-bit segments from the triplet
-        a = (chunk & 16515072) >> 18 // 16515072 = (2^6 - 1) << 18
-        b = (chunk & 258048) >> 12 // 258048   = (2^6 - 1) << 12
-        c = (chunk & 4032) >> 6 // 4032     = (2^6 - 1) << 6
-        d = chunk & 63               // 63       = 2^6 - 1
-
-        // Convert the raw binary segments to the appropriate ASCII encoding
-        base64 += encodings[a] + encodings[b] + encodings[c] + encodings[d]
+    // base case
+    if (currentChildrenArray === []) {
+        return;
     }
 
-    // Deal with the remaining bytes and padding
-    if (byteRemainder == 1) {
-        chunk = bytes[mainLength]
-
-        a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
-
-        // Set the 4 least significant bits to zero
-        b = (chunk & 3) << 4 // 3   = 2^2 - 1
-
-        base64 += encodings[a] + encodings[b] + '=='
-    } else if (byteRemainder == 2) {
-        chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
-
-        a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
-        b = (chunk & 1008) >> 4 // 1008  = (2^6 - 1) << 4
-
-        // Set the 2 least significant bits to zero
-        c = (chunk & 15) << 2 // 15    = 2^4 - 1
-
-        base64 += encodings[a] + encodings[b] + encodings[c] + '='
+    // recursive rule
+    for (let i = 0; i < currentChildrenArray.length; i++) {
+        dfsHelper(currentChildrenArray[i], map, set);
     }
-
-    return base64
 }
