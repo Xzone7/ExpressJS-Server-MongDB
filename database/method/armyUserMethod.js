@@ -69,7 +69,7 @@ module.exports.getValidSuperiorById = (res, id) => {
     });
 }
 
-/* GET USER BY ID (NOTICE: CURRENTLY DEPRECATED) */
+/* GET USER BY ID (NOTICE: IT IS FOR SUPERIORVIEW) */
 module.exports.getArmyUserByID = (res, id) => {
 
     console.log(`Start to fetch user: ${id} data transaction... \n`);
@@ -90,10 +90,43 @@ module.exports.getArmyUserByID = (res, id) => {
             return;
         }
         res.status(200).json(data);
-        console.log("DB *FIND BY ID* transaction has succeed... \n");
+        console.log("DB *GET SUPERIOR VIEW* transaction has succeed... \n");
         console.log("Send data to client successfully... \n");
     });
 };
+
+/* GET USER'S NUM_OF_DS DATA LIST IN DETAILS 
+   Work-flow: 
+             1. find user's num_of_ds by req id 
+             2. use ids in num_of_ds to find all ids detail data
+*/
+module.exports.getArmyDS = (res, id) => {
+
+    console.log(`Start to fetch user: ${id} data transaction... \n`);
+
+    // step 1
+    ArmyUsers.findById(id, (err, data) => {
+        if (err) {
+            closeFailHandle(err, res);
+            return;
+        }
+
+        // step 2
+        const childrenIds = data.num_of_ds.map((ele, index) => {
+            return ele._id;
+        });
+        ArmyUsers.find({ _id: { $in: childrenIds } }, (err, data) => {
+            if (err) {
+                closeFailHandle(err, res);
+                return;
+            }
+            res.status(200).json(data);
+            console.log("DB *GET SUBORDINATE VIEW* transaction has succeed... \n");
+            console.log("Send data to client successfully... \n");
+        });
+    });
+
+}
 
 /* POST A NEW USER 
    Wokr-flow: 1. check data validation
@@ -200,7 +233,7 @@ module.exports.updateArmyUser = (res, id, data) => {
 
         const originName = originalData.superior.name ? originalData.superior.name.toString() : null;
         const originId = originalData.superior._id ? originalData.superior._id.toString() : null;
-   
+
         // case 1
         if ((originName === data.superior.name && originId === data.superior._id)) {
 
@@ -426,7 +459,7 @@ const getAllValidSuperiorList = (id, data) => {
 
     // fill out set with all children of current entry id node, including itself 
     dfsHelper(id, map, set);
-    
+
     // filter out any one in the set from data based on id
     return data.filter((ele, index) => !set.has(ele._id.toString()));
 }

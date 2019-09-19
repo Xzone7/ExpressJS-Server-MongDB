@@ -66,6 +66,11 @@ class MongoDBConnection {
         armyuser.getArmyUserByID(res, id);
     }
 
+    // GET user's ds details
+    getArmyDS(res, id) {
+        armyuser.getArmyDS(res, id);
+    }
+
     // GET valid superior list
     getValidSuperiorById(res, id) {
         armyuser.getValidSuperiorById(res, id);

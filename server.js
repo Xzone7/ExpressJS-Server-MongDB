@@ -106,6 +106,16 @@ router.get("/allow-edit-superior/:userId", (req, res) => {
     conn.getValidSuperiorById(res, req.params.userId);
 });
 
+/* GET Method Router: get superior-view based on ID */
+router.get("/superiorview/:userId", (req, res) => {
+    conn.getArmyUserById(res, req.params.userId);
+})
+
+/* GET Method Router: get subordinate-view based on ID */
+router.get("/subordinateview/:userId", (req, res) => {
+    conn.getArmyDS(res, req.params.userId);
+})
+
 /* POST Method Router */
 router.post("/armyusers", (req, res) => {
     conn.insertArmyUser(res, req.body);
