@@ -132,6 +132,19 @@ router.delete("/armyusers", (req, res) => {
 });
 
 
+
+/* ----------------------------------- */
+/* JWT-project Router configuration */
+/* ----------------------------------- */
+
+/* GET Method Router */
+
+/* POST Method Router */
+router.post("/xhub/register", (req, res) => {
+    conn.insertNewRegister(res, req.body);
+})
+
+
 /* Missing Resources 404 Page Router */
 app.all("*", (req, res) => {
     res.status(404).send("<h1>Page Not Found</h1>");
@@ -140,6 +153,7 @@ app.all("*", (req, res) => {
 router.all("*", (req, res) => {
     res.status(404).send("<h1>Resources Not Found</h1>");
 });
+
 
 /* ----------------------------------- */
 /* Port configuration */

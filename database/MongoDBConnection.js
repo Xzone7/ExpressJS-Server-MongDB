@@ -7,6 +7,7 @@
 const mongoose = require("mongoose");
 const user = require("./method/userMethod");
 const armyuser = require("./method/armyUserMethod");
+const password = require("./method/userPasswordMethod");
 const connectString = require("./connection-config/config");
 
 class MongoDBConnection {
@@ -49,7 +50,7 @@ class MongoDBConnection {
     }
 
 
-    /**************Users Collection**************/
+    /**************ArmyUsers Collection**************/
 
     // GET all users, return array of users
     getArrayOfAllArmyUser(req, res) {
@@ -89,6 +90,16 @@ class MongoDBConnection {
     // DELETE one user by userID
     deleteArmyUser(res, data) {
         armyuser.deleteArmyUser(res, data);
+    }
+
+
+    /**************Passwords Collection**************/
+    getPassword(username) {
+        return password.getPassword(username);
+    }
+
+    insertNewRegister(res, data) {
+        password.insertNewUser(res, data);
     }
 }
 
