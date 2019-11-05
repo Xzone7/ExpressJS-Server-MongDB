@@ -2,31 +2,30 @@
 
 const mongoose = require("mongoose");
 const Passwords = require("../schema/passwordSchema");
+const { login } = require("../../JWT/HandlerGenerator");
 
 
 /* Internal funcation to verify login in */
-module.exports.getPassword = (username) => {
+module.exports.getPassword = (res, userData) => {
+
+    const username = userData.username;
 
     console.log(`Start to fetch ${username}'s password... \n`);
 
     Passwords.findOne({username: username}, (err, data) => {
         if (err) {
             console.error(err);
-            return null;
+            res.status(500).json({
+                DBconnection: `${err}`
+            });
+            return;
         }
 
-        /* Case 1: username is not found */
-        if (data === null) {
-            console.error(`username: ${username} is not found in the database`);
-            return null;
-        }
-
-        /* Case 2: username is found, return it's password */
-        console.log("DB *FIND USER* transaction has succeed...\n");
-        console.log("Return data to caller...\n");
-        return data;
+        /* Pass data to login token generator, let it check data exsiting */
+        login(res, userData, data);
     });
 }
+
 
 /* POST NEW USER WITH PASSWORD */
 /* Work flow: (2 depends on 1)

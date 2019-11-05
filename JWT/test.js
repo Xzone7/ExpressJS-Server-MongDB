@@ -1,8 +1,15 @@
-const a = [1, 2]
-const b = [3, 4]
-
-for (let i = 0; i < 4; i++) {
-    setTimeout((i) => {
-        console.log(i)
-    }, 1000);
+const addNum = (num) => {
+    let rest = num;
+    let res = []
+    for (let i = 0; i < num; i++) {
+        if (rest <= 0) {
+            break;
+        } else {
+            res.push(num - i);
+            rest = rest - i;
+        }
+    }
+    return res;
 }
+
+console.log(addNum(6));

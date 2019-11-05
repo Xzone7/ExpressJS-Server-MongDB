@@ -1,4 +1,4 @@
-let jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const config = require('./config');
 
 /* Middleware to get a token from request and proceeds only when the token is validated */
@@ -42,3 +42,5 @@ let checkToken = (req, res, next) => {
 module.exports = {
     checkToken: checkToken
 }
+
+console.log();
