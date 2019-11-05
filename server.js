@@ -139,10 +139,15 @@ router.delete("/armyusers", (req, res) => {
 
 /* GET Method Router */
 
-/* POST Method Router */
+/* POST Method Router - register new user */
 router.post("/xhub/register", (req, res) => {
     conn.insertNewRegister(res, req.body);
-})
+});
+
+/* POST Method Router - login in */
+router.post("/xhub/login", (req, res) => {
+    conn.getPassword(res, req.body);
+});
 
 
 /* Missing Resources 404 Page Router */
@@ -153,6 +158,7 @@ app.all("*", (req, res) => {
 router.all("*", (req, res) => {
     res.status(404).send("<h1>Resources Not Found</h1>");
 });
+
 
 
 /* ----------------------------------- */

@@ -94,8 +94,8 @@ class MongoDBConnection {
 
 
     /**************Passwords Collection**************/
-    getPassword(username) {
-        return password.getPassword(username);
+    getPassword(res, data) {
+        password.getPassword(res, data);
     }
 
     insertNewRegister(res, data) {
